@@ -21,6 +21,7 @@ body {
   padding: 0;
   margin: 0;
   height: 47px;
+  z-index: 9999;
 }
 
 .search-container {
@@ -34,4 +35,46 @@ body {
   margin: 0 auto;
   border-radius: 25px;
   border: none;
+}
+
+.gallery {
+  padding-top: 25px;
+  flex-wrap: wrap;
+  gap: 10px;
+  display: flex;
+  position: absolute;
+  top: 47px;
+  justify-content: center;
+}
+
+/* Add styles for the gallery items */
+.gallery-item {
+  position: relative;
+  flex-basis: calc((100% - 20px) / 8);
+  height: auto;
+}
+
+/* Add styles for the labels */
+.gallery-item figure {
+  position: relative;
+  width: 100%;
+  margin: 0;
+}
+.gallery-item div {
+  margin: 4px;
+}
+
+.gallery-item figure img {
+  display: block;
+  width: 250px;
+  height: 200px;
+}
+
+.gallery-item figure figcaption {
+  color: #fff;
+  text-align: center;
+  background-color: rgb(0, 129, 204);
+  padding: 8px;
+  font-size: 12px;
+  position: relative;
 }
