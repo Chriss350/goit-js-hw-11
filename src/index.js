@@ -55,7 +55,7 @@ const getData = async () => {
     fetchData(inputSearchValue, page)
       .then(respData => {
         totalPages = Math.ceil(respData.totalHits / perPage);
-        console.log('wywolanie fetchPictures respData', respData); // dziala
+        // console.log('wywolanie fetchPictures respData', respData);
 
         let picsInArray = respData.hits.length;
 
@@ -109,13 +109,17 @@ const showPictures = async data => {
 };
 
 const checkUserScroll = () => {
-  const result = (document.documentElement.scrollTop / getPageHeight()) * 100;
+  const result =
+    ((document.documentElement.scrollTop + window.innerHeight) /
+      getPageHeight()) *
+    100;
 
-  if (result > 40) {
+  // console.log(result);
+
+  if (result > 70) {
     if (page != totalPages) {
-      console.log('Loading...');
       ++page;
-      console.log(`current page is ${page} of ${totalPages}`);
+      // console.log(`current page is ${page} of ${totalPages}`);
       loadMore();
     }
     return;
