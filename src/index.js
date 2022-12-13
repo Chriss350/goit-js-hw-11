@@ -46,7 +46,7 @@ const fetchData = async (input, page) => {
   }
 };
 
-const getData = async () => {
+const getData = () => {
   inputSearchValue = searchBar.value;
   page = 1;
   gallery.innerHTML = '';
@@ -72,7 +72,7 @@ const getData = async () => {
   }
 };
 
-const loadMore = async () => {
+const loadMore = () => {
   if (page === totalPages) {
     Notiflix.Notify.warning(
       "We're sorry, but you've reached the end of search results."
