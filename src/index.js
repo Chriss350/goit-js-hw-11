@@ -10,6 +10,7 @@ const API_KEY = '31936057-7f7d0c6f748880506350ca56e';
 
 const searchBar = document.querySelector('#search-box');
 const gallery = document.querySelector('.gallery');
+const goTop = document.querySelector('#goTop');
 
 let perPage = 40;
 let page = 1;
@@ -33,13 +34,6 @@ const lightbox = new SimpleLightbox('.gallery a', {
   captionDelay: 250,
   scrollZoom: false,
 });
-
-function getScrollTop() {
-  return window.pageYOffset !== undefined
-    ? window.pageYOffset
-    : (document.documentElement || document.body.parentNode || document.body)
-        .scrollTop;
-}
 
 const fetchData = async (input, page) => {
   try {
@@ -89,16 +83,6 @@ const loadMore = async () => {
       .then(respData => {
         showPictures(respData);
         lightbox.refresh();
-        // console.log('loadMore page?', page);
-
-        // let picsInArray = respData.hits.length;
-        // console.log('picsInArray', picsInArray);
-
-        // console.log('tp' + totalPages);
-
-        // if (picsInArray > 0) {
-        //   renderGallery(respData);
-        // }
       })
       .catch(error => console.log(error));
   }
@@ -121,44 +105,35 @@ const showPictures = async data => {
     )
     .join('');
 
-  gallery.innerHTML += markup;
+  gallery.insertAdjacentHTML('beforeend', markup);
 };
 
-// const checkUserScroll = () => {
+const checkUserScroll = () => {
+  const result = (document.documentElement.scrollTop / getPageHeight()) * 100;
 
-//   console.log("scrollTop " + document.documentElement.scrollTop)
-//   console.log("window height " + getPageHeight())
-
-//   const result = (document.documentElement.scrollTop / getPageHeight()) * 100);
-
-//   console.log(result)
-
-//   if (result > 40) {
-//     if (page != totalPages) {
-//       console.log('Loading...');
-//       ++page;
-//       console.log(`current page is ${page} of ${totalPages}`);
-//       loadMore();
-//     } else {
-//       alert('no more pages');
-//     }
-//   }
-// };
-
-window.onscroll = () => {
-  if (getScrollTop() < getPageHeight() - window.innerHeight) return;
-
-  console.log(getScrollTop());
-  console.log(getPageHeight());
-  console.log(getPageHeight() - window.innerHeight);
-
-  if (page != totalPages) {
-    ++page;
-    console.log(`current page is ${page} of ${totalPages}`);
-    loadMore();
-  } else {
-    alert('no more pages');
+  if (result > 40) {
+    if (page != totalPages) {
+      console.log('Loading...');
+      ++page;
+      console.log(`current page is ${page} of ${totalPages}`);
+      loadMore();
+    }
+    return;
   }
 };
+
+goTop.addEventListener('click', e => {
+  e.preventDefault();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 searchBar.addEventListener('input', debounce(getData, 300));
-// window.addEventListener('scroll', debounce(checkUserScroll, 500));
+window.addEventListener('scroll', debounce(checkUserScroll, 300));
+window.addEventListener('scroll', () => {
+  const showBtn =
+    document.documentElement.scrollTop > 300
+      ? goTop.classList.add('show')
+      : goTop.classList.remove('show');
+  showBtn;
+});
