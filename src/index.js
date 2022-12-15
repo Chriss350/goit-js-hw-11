@@ -11,10 +11,19 @@ const API_KEY = '31936057-7f7d0c6f748880506350ca56e';
 const searchBar = document.querySelector('#search-box');
 const gallery = document.querySelector('.gallery');
 const goTop = document.querySelector('#goTop');
+const btnSettings = document.querySelector('#modal-settings');
+const modal = document.querySelector('#myModal');
+const btnCloseModal = document.querySelector('#close');
+const darkbtn = document.querySelector('#dark');
+const loadMoreBtn = document.querySelector('#loadMore');
 
-let perPage = 40;
-let page = 1;
-let inputSearchValue, totalPages;
+const loadbtn = document.querySelector('#load');
+const selbtn = document.querySelector('#sel');
+
+let perPage = localStorage.getItem('hits');
+let page = 0;
+let totalPages = 0;
+let inputSearchValue;
 
 lazyLoadImages.init();
 
@@ -28,6 +37,8 @@ const getPageHeight = () => {
     html.scrollHeight
   );
 };
+
+loadMoreBtn.classList.add('isHidden');
 
 const lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
@@ -55,8 +66,8 @@ const getData = () => {
     fetchData(inputSearchValue, page)
       .then(respData => {
         totalPages = Math.ceil(respData.totalHits / perPage);
-        // console.log('wywolanie fetchPictures respData', respData);
-
+        // console.log(respData.totalHits);
+        // console.log(totalPages);
         let picsInArray = respData.hits.length;
 
         if (picsInArray === 0) {
@@ -66,6 +77,15 @@ const getData = () => {
         } else {
           showPictures(respData);
           lightbox.refresh();
+          console.log(`current page is ${page} of ${totalPages}`);
+          // console.log(JSON.parse(localStorage.getItem('load')));
+          // console.log(totalPages);
+
+          if (JSON.parse(localStorage.getItem('load') === 'true')) {
+            if (totalPages > 1) {
+              loadMoreBtn.classList.remove('isHidden');
+            }
+          }
         }
       })
       .catch(error => console.log(error));
@@ -73,12 +93,14 @@ const getData = () => {
 };
 
 const loadMore = () => {
-  if (page === totalPages) {
-    Notiflix.Notify.warning(
-      "We're sorry, but you've reached the end of search results."
-    );
-    return;
-  } else {
+  if (page !== totalPages) {
+    ++page;
+    console.log(`current page is ${page} of ${totalPages}`);
+    if (JSON.parse(localStorage.getItem('load') === 'true')) {
+      if (page === totalPages) {
+        loadMoreBtn.classList.add('isHidden');
+      }
+    }
     fetchData(inputSearchValue, page)
       .then(respData => {
         showPictures(respData);
@@ -109,6 +131,9 @@ const showPictures = async data => {
 };
 
 const checkUserScroll = () => {
+  if (JSON.parse(localStorage.getItem('load')) === true) {
+    return;
+  }
   const result =
     ((document.documentElement.scrollTop + window.innerHeight) /
       getPageHeight()) *
@@ -118,12 +143,24 @@ const checkUserScroll = () => {
 
   if (result > 70) {
     if (page != totalPages) {
-      ++page;
-      // console.log(`current page is ${page} of ${totalPages}`);
       loadMore();
     }
-    return;
   }
+
+  // console.log(result);
+  if (result >= 99) {
+    Notiflix.Notify.warning(
+      "We're sorry, but you've reached the end of search results."
+    );
+  }
+};
+
+const showModal = () => {
+  modal.style.display = 'block';
+};
+
+const closeModal = () => {
+  modal.style.display = 'none';
 };
 
 goTop.addEventListener('click', e => {
@@ -133,11 +170,117 @@ goTop.addEventListener('click', e => {
 });
 
 searchBar.addEventListener('input', debounce(getData, 300));
+
 window.addEventListener('scroll', debounce(checkUserScroll, 300));
+
 window.addEventListener('scroll', () => {
   const showBtn =
     document.documentElement.scrollTop > 300
       ? goTop.classList.add('show')
       : goTop.classList.remove('show');
   showBtn;
+});
+
+btnSettings.addEventListener('click', showModal);
+btnCloseModal.addEventListener('click', closeModal);
+
+window.onclick = function (event) {
+  if (event.target == modal) {
+    modal.style.display = 'none';
+  }
+};
+
+const saveSettings = data => {
+  const hits = data.value;
+  const dataJSON = JSON.stringify(data.value);
+
+  if (data.type === 'load') {
+    localStorage.setItem(data.type, dataJSON);
+  }
+
+  if (data.type === 'darkMode') {
+    localStorage.setItem(data.type, dataJSON);
+  }
+
+  if (data.type === 'hits') {
+    localStorage.setItem(data.type, hits);
+  }
+};
+
+const loadSettings = () => {
+  if (localStorage.getItem('darkMode') === null) {
+    localStorage.setItem('darkMode', false);
+  }
+  setDarkMode();
+
+  if (localStorage.getItem('load') === null) {
+    localStorage.setItem('load', false);
+  }
+
+  if (localStorage.getItem('hits') === null) {
+    localStorage.setItem('hits', 40);
+  }
+
+  darkbtn.checked = JSON.parse(localStorage.getItem('darkMode'));
+  loadbtn.checked = JSON.parse(localStorage.getItem('load'));
+};
+
+const setDarkMode = () => {
+  if (JSON.parse(localStorage.getItem('darkMode')) === true) {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+};
+
+window.addEventListener('load', () => {
+  loadSettings();
+});
+
+loadbtn.addEventListener('click', e => {
+  const setting = {
+    type: e.target.name,
+    value: e.target.checked,
+  };
+
+  saveSettings(setting);
+
+  if (page !== totalPages) {
+    loadMoreBtn.classList.remove('isHidden');
+  }
+  if (e.target.checked === false) {
+    loadMoreBtn.classList.add('isHidden');
+  }
+});
+
+selbtn.addEventListener('change', e => {
+  console.log();
+  const setting = {
+    type: e.target.name,
+    value: e.target.value,
+  };
+
+  saveSettings(setting);
+  perPage = e.target.value;
+  console.log(setting);
+});
+
+darkbtn.addEventListener('click', e => {
+  const setting = {
+    type: e.target.name,
+    value: e.target.checked,
+  };
+  // console.log(setting);
+  saveSettings(setting);
+  setDarkMode();
+});
+
+loadMoreBtn.addEventListener('click', () => {
+  if (page != totalPages) {
+    if (page === totalPages) {
+      loadMoreBtn.classList.add('isHidden');
+    }
+    // console.log(`current page is ${page} of ${totalPages}`);
+    loadMore();
+  }
 });
